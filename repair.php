@@ -1,10 +1,6 @@
 <?php
-
 /*
-* Copyright 2013
-* Jeff Bickart
-* @bickart
-* jeff @ neposystems.com
+* Copyright 2020
 * samuel.li@cn.ibm.com
 * Usage: cd SUGARCRM; php repair.php 
 */
@@ -17,14 +13,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 use RepairAndClear;
 use LanguageManager;
 
-
 ini_set('display_errors',1);
 error_reporting(E_ALL);
 
-
 if(!defined('sugarEntry'))define('sugarEntry', true);
-// require_once('include/entryPoint.php');
-echo "step 1\n";
+
 require __DIR__ . '/vendor/autoload.php';
 
 require_once('include/utils.php');
