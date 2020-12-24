@@ -1,0 +1,61 @@
+FROM php:7.3.11-apache-stretch
+LABEL maintainer="SugarCRM 7+ Running Env <samuel.li@cn.ibm.com>"
+
+RUN apt-get update
+RUN apt-get install -y g++ \
+                      openssl \
+                      libc-client2007e-dev \
+                      libkrb5-dev \
+                      libxml2-dev \
+                      libfreetype6-dev \
+                      libgd-dev \
+                      libldap2-dev \
+                      libsasl2-dev \
+                      libmcrypt-dev \
+                      libzip-dev \
+                      libcurl4-openssl-dev \
+                      libgmp-dev \
+                      zlib1g-dev \
+                      libpng-dev && \
+    ln -fs /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib/
+
+RUN docker-php-ext-configure imap --with-kerberos --with-imap-ssl && \
+    docker-php-ext-configure gd --with-freetype-dir=/usr && \
+    docker-php-ext-configure bcmath && \
+    docker-php-ext-configure ldap --with-ldap-sasl --with-ldap
+
+RUN docker-php-ext-install imap gd exif dom gettext mbstring soap zip bcmath ldap gmp mysqli
+RUN pecl install mcrypt-1.0.4
+RUN docker-php-ext-enable mcrypt
+
+RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
+  php composer-setup.php --quiet --install-dir="/usr/local/bin/" --filename="composer" && \
+  rm composer-setup.php
+
+# configure php
+RUN printf "error_reporting = E_ALL & ~E_STRICT \n\
+phar.readonly = false \n\
+display_errors = On \n\
+log_errors = Off \n\
+memory_limit = 512M \n\
+upload_max_filesize = 8M \n\
+date.timezone='America/Los_Angeles' \n" > /usr/local/etc/php/conf.d/setting.ini
+
+
+RUN printf "<Directory /var/www/html> \n\
+    Options Indexes FollowSymLinks\n\
+    AllowOverride All\n\
+    Order allow,deny\n\
+    Allow from all\n\
+    Require all granted\n\
+</Directory>\n" > /etc/apache2/conf-available/rewrite-enable.conf
+
+RUN ln -s /etc/apache2/mods-available/rewrite.load /etc/apache2/mods-enabled/rewrite.load 
+
+RUN pecl install xdebug
+RUN docker-php-ext-enable xdebug
+
+RUN printf "xdebug.mode=debug \n\
+xdebug.start_with_request = yes \n" > /usr/local/etc/php/conf.d/xdebug-setting.ini
+
+CMD ["apache2-foreground"]
