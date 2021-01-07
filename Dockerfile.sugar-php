@@ -33,7 +33,7 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
   rm composer-setup.php
 
 # configure php
-RUN printf "error_reporting = E_ALL & ~E_STRICT \n\
+RUN printf "error_reporting = E_ERROR \n\
 phar.readonly = false \n\
 display_errors = On \n\
 log_errors = Off \n\
